@@ -10,11 +10,97 @@
     <link rel="stylesheet" href="dist/reset.css">
     <link rel="stylesheet" href="dist/reveal.css">
     <link rel="stylesheet" href="dist/theme/black.css">
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
 
     <!-- Theme used for syntax highlighted code -->
     <link rel="stylesheet" href="plugin/highlight/monokai.css">
 	
 </head>
+
+<style>
+.fullscreen-div {
+padding:0px 0px;
+}
+
+#grafico {
+    font-size: 2em; /* Adjust font size as needed */
+    color: rgb(0, 0, 0); /* Text color */
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    height: 900px;
+    padding: 0;
+    box-sizing: border-box;
+
+}
+
+.barras {
+    background-color: #ffffff80;
+    position: relative;
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-start;
+    width: 17%;
+    margin: 0px 3px;
+    text-align: left;
+    padding: 5px 10px;
+    line-height: 4rem;
+}
+
+.textos, .textos .ppm, .textos .titulo {
+    font-weight: 600;
+    text-transform: none;
+}
+
+.textos .ppm{
+    font-size: 5rem;
+}
+.textos .ppm span{
+    font-size: 2rem;
+}
+
+.textos .titulo, .textos .tiempo{
+    text-transform: none;
+    font-size: 2rem;
+    line-height: 2rem;
+}
+
+.textos .tiempo{
+    font-weight: 300;
+}
+
+</style>
+
+
+
+<script>
+
+
+    var topic = 'arduino/co2';
+
+    // Create the MQTT client
+    var client = mqtt.connect("wss://driver.cloudmqtt.com:38787", {
+        clientId: "ObservableClient_" + Math.random().toString(16).substr(2, 8),
+        username: "bfgxktqq",
+        password: "Bn4iVr0IwOHR",
+        clean: true
+    });
+
+    client.on('connect', function() {
+        console.log('Connected to MQTT broker');
+        client.subscribe(topic, function(err) {
+            if (!err) {
+                console.log(`Subscribed to topic: ${topic}`);
+            }
+        });
+    });
+
+  
+
+
+
+</script>
 
 <body>
     <div class="reveal">
@@ -26,7 +112,7 @@
 				<h3 class="r-fit-text" style="white-space: nowrap; display: inline-block; font-size: 66.1662px;">Y NO HA <B>DEJADO DE AUMENTAR</B> DESDE</h3>
 				<h3 class="r-fit-text" style="white-space: nowrap; display: inline-block; font-size: 66.1662px;">LA REVOLUCIÓN INDUSTRIAL</h3>
 				<h2 class="r-fit-text" style="white-space: nowrap; display: inline-block; font-size: 153.6px;">AIRE LIMPIO</h2>
-				<small  style="white-space: nowrap; display: inline-block; font-size: 1rem;">*Particulas por millon</small>
+				<small  style="white-space: nowrap; display: inline-block; font-size: 1rem;">*Partículas por millon</small>
 			</section>
 				<section style="top: 206px; display: block;" class="present" data-auto-animate>
 					<h2 class="r-fit-text" style="white-space: nowrap; display: inline-block; font-size: 153.6px;">AIRE LIMPIO</h2>
@@ -34,9 +120,15 @@
 					<h3 class="r-fit-text" style="white-space: nowrap; display: inline-block; font-size: 66.1662px;">INDICA LA CANTIDAD DE AIRE RESPIRADO</h3>
 					<h3 class="r-fit-text" style="white-space: nowrap; display: inline-block; font-size: 66.1662px;">Y AUMENTA SI NO HAY VENTILACIÓN</h3>
 					<h3 class="r-fit-text" style="white-space: nowrap; display: inline-block; font-size: 66.1662px;">HASTA LÍMITES PELIGROSOS PARA LAS PERSONAS</h3>
-					<small  style="white-space: nowrap; display: inline-block; font-size: 1rem;">*Particulas por millon</small>
+					<small  style="white-space: nowrap; display: inline-block; font-size: 1rem;">*Partículas por millon</small>
 				</section>
-
+                <section>
+                    <div class="fullscreen-div">
+                        <div id="grafico">
+                            
+                        </div>
+                    </div>
+                </section>
 
         </div>
     </div>
@@ -46,19 +138,108 @@
     <script src="plugin/markdown/markdown.js"></script>
     <script src="plugin/highlight/highlight.js"></script>
     <script>
+
+
         // More info about initialization & config:
         // - https://revealjs.com/initialization/
         // - https://revealjs.com/config/
         Reveal.initialize({
-			
+            margin:0,
+            disableLayout: false,
+            width: 1920,
+            height: 1080,
+            controls: false,
             hash: true,
-            autoSlide: 10000, // Sets auto-slide to 2 seconds
+            autoSlide: 15000, // Sets auto-slide to 2 seconds
 			pauseOnHover: false, // Ensures autoslide isn't paused on hover
 			loop: true,
 
             // Learn about plugins: https://revealjs.com/plugins/
             plugins: [RevealMarkdown, RevealHighlight, RevealNotes]
         });
+
+
+        
+    ///barchart
+
+
+    const data = [
+        { id: 1, titulo: 'ERA DEL HIELO', ppm: 250, time:'Hace 20mil años' },
+        { id: 2, titulo: 'IMPERIO ROMANO', ppm: 270, time:'Hace 2mil años' },
+        { id: 3, titulo: 'REVOLUCIÓN INDUSTRIAL', ppm: 280, time:'Hace 150 años' },
+        { id: 4, titulo: 'SEGUNDA GUERRA MUNDIAL', ppm: 320, time:'Hace 75 años' },
+        { id: 5, titulo: 'PROMEDIO ACTUAL', ppm: 420, time:'2023' },
+        { id: 6, titulo: 'EN ESTA SALA', ppm: 875, time:'Ahora' },
+    ];
+
+
+        var main = d3.select("#grafico");
+
+
+            // Declare the chart dimensions and margins.
+             width = window.innerWidth;
+             height = window.innerHeight;
+            
+            // Declare the y (vertical position) scale.
+            const y = d3.scaleLinear()
+                .domain([0, d3.max(data, (d) => d.ppm)])
+                .range([0 , 100]);
+
+            // Add a rect for each bar.
+            var barrasGroup = main
+                .selectAll('div')
+                .data(data)
+                .join('div')
+                .attr('class','barras')
+                
+            barrasGroup
+                .style("height", (d) => y(d.ppm)+"%");
+
+            
+         var textos = barrasGroup.append('div').attr("class","textos");
+
+         textos.append('div')
+                .attr('class','ppm')
+                .html(d=>d.ppm)
+                .append("span").text("ppm");
+    
+        
+         textos.append('div')
+                .attr('class','titulo')
+                .html(d=>d.titulo);
+        
+                textos.append('div')
+                .attr('class','tiempo')
+                .html(d=>d.time);
+        
+
+                // TRAE EL DATO DE MQTT
+
+        client.on('message', function(topic, message) {
+            actualizaCO2(message);
+            console.log(`Received message: ${message.toString()}`);
+             });
+
+
+
+             function actualizaCO2(valor) {
+                    data[5].ppm = valor;
+
+                    // Re-define the y (vertical position) scale with the new data.
+                    y.domain([0, d3.max(data, (d) => d.ppm)]);
+
+                    // Apply a transition to the height of the bars.
+                    barrasGroup.transition()
+                        .duration(1000) // Adjust this duration to your preference.
+                        .style("height", (d) => y(d.ppm) + "%");
+
+                    // Update the ppm value in the text.
+                    d3.selectAll('.ppm').html(d => d3.format("d")(d.ppm)).append("span").text("ppm");
+                }
+
+                
+
+
     </script>
 </body>
 
