@@ -51,6 +51,7 @@ padding:0px 0px;
 .textos, .textos .ppm, .textos .titulo {
     font-weight: 600;
     text-transform: none;
+    width:100%
 }
 
 .textos .ppm{
@@ -60,16 +61,29 @@ padding:0px 0px;
     font-size: 2rem;
 }
 
-.textos .titulo, .textos .tiempo{
+.textos .titulo, .textos .tiempo, .textos #extra{
     text-transform: none;
     font-size: 2rem;
     line-height: 2rem;
 }
 
-.textos .tiempo{
+.textos .tiempo, .textos #extra{
     font-weight: 300;
 }
 
+.textos #extra{
+    margin-top:20px;
+    font-weight: 600;
+    background-color: #d7f2368c;
+    font-size:1.5rem;
+    padding: 10px;
+    border-radius: 15px;
+}
+
+
+#co2fondo{
+    position:absolute;left:0;font-weight: 100;color:#ffffff60;text-transform: none;
+}
 </style>
 
 
@@ -124,6 +138,7 @@ padding:0px 0px;
 				</section>
                 <section>
                     <div class="fullscreen-div">
+                        <h2 id="co2fondo" class="r-fit-text" style="white-space: nowrap; display: inline-block; font-size: 153.6px;">Co2</h2>
                         <div id="grafico">
                             
                         </div>
@@ -208,9 +223,13 @@ padding:0px 0px;
                 .attr('class','titulo')
                 .html(d=>d.titulo);
         
-                textos.append('div')
+            textos.append('div')
                 .attr('class','tiempo')
                 .html(d=>d.time);
+
+            textos.filter(d=>d.id == 6).append('div').style("opacity",0)
+                .attr('id','extra')
+                .html("hola");
         
 
                 // TRAE EL DATO DE MQTT
@@ -235,6 +254,48 @@ padding:0px 0px;
 
                     // Update the ppm value in the text.
                     d3.selectAll('.ppm').html(d => d3.format("d")(d.ppm)).append("span").text("ppm");
+
+                    var textoExtra ="";
+
+                        switch (true) {
+                            case valor < 450:
+                                textoExtra = "Podes probar soplando el sensor...";
+                                break;
+                                case valor > 500 && valor < 600:
+                                textoExtra = "Se estima que en 2050, el nivel de Co2 será de 550ppm (21% más que hoy)";
+                                break;
+                            case valor > 800 && valor < 1000:
+                                textoExtra = "En estos valores, el riesgo de contagio de COVID es alto";
+                                break;
+
+                                case valor > 1100 && valor < 1250:
+                                textoExtra = "En salas de espera o transportes, con ~1200ppm, respiramos el aire de otros";
+                                break;
+
+                                case valor > 1300 && valor < 1500:
+                                textoExtra ="Con este nivel de Co2, concentrarse es difícil";
+                                break;
+                                case valor > 1800 && valor < 2000:
+                                textoExtra ="Hace 50 millones de años, con este valor de Co2 en la atmósfera, había cocodrilos en el ártico";
+                                break;
+
+                            default:
+                            textoExtra ="";
+                        }
+
+                        if(textoExtra){
+                            d3.select('#extra').transition()
+                                .duration(1000) // Adjust this duration to your preference.
+                                .style("opacity", 1);
+
+                            d3.select('#extra').html(textoExtra)
+
+                        }else{
+                            d3.select('#extra').transition()
+                                .duration(1000) // Adjust this duration to your preference.
+                                .style("opacity", 0);
+                        }
+
                 }
 
                 
